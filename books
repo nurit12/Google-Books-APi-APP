@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<script type="text/javascript" src="https://www.google.com/books/jsapi.js"></script>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск книги</title>
+</head>
+<body>
+    <h1>ПОИСК КНИГ</h1>
+    <form id="searchForm">
+        <input type="text" id="bookTitle" name="bookTitle" placeholder="Введите название книги">
+        <button type="submit">Поиск</button>
+    </form>
+
+    <div id="buyForm" style="display: none;">
+        <h2>Купить книгу</h2>
+        <form id="purchaseForm">
+            <input type="text" id="name" name="name" placeholder="Имя" required><br>
+            <input type="email" id="email" name="email" placeholder="Email" required><br>
+            <input type="tel" id="phone" name="phone" placeholder="Телефон" required><br>
+            <input type="text" id="address" name="address" placeholder="Адрес" required><br>
+            <button type="submit">Отправить</button>
+        </form>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const searchTerm = document.getElementById('bookTitle').value;
+            fetch('')
+            .then(response => response.json())
+            .then(data => {
+                const books = data.items;
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '';
+                books.forEach(book => {
+                    const title = book.volumeInfo.title;
+                    const authors = book.volumeInfo.authors ? book.volumeInfo.authors.join(', ') : 'Unknown';
+                    const bookDiv = document.createElement('div');
+                    bookDiv.innerHTML = 
+                        <> 
+                            <p>Title: ${title}</p>
+                            <p>Author(s): ${authors}</p>
+                        </>
+                    ;
+                    resultsDiv.appendChild(bookDiv);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        });
+        
+        function showBuyForm(title, authors) {
+            document.getElementById('buyForm').style.display = 'block';
+            document.getElementById('purchaseForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const phone = document.getElementById('phone').value;
+                const address = document.getElementById('address').value;
+                const bookData = { title, authors, name, email, phone, address };
+                
+                appendDataToGoogleSheets(bookData);
+            });
+        }
+
+        function appendDataToGoogleSheets(data) {
+            fetch('https://docs.google.com/spreadsheets/d/1LHkl6A1RsEyTJaOvkww-Xmym-GEJS2ZCFKelekrmwG0/edit#gid=0', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
